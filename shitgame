@@ -11,16 +11,20 @@ try:
     from scrap_engine import Object, Map, screen_height, screen_width, Text, Box
 except:
     _in = input("failed to import engine, do you want to install it? (Y/n)")
-    if _in == "Y" or "":
-        system("pip3 install --user scrap_engine")
+    if _in == "Y" or "y" or "":
+        system("pip3.10 install --user scrap_engine")
+        from scrap_engine import Object, Map, screen_height, screen_width, Text, Box
     else:
         exit()
 try:
     from pynput import keyboard
 except:
     _in = input("failed to import keyboard library, want to install it? (Y/n)")
-    if _in == "Y" or "":
-        system("pip3 install --user pynput")
+    if _in == "Y" or "y" or "":
+        system("pip3.10 install --user pynput")
+        from pynput import keyboard
+    else:
+        exit()
 
 from modules.client import Client
 from modules.host import Host
