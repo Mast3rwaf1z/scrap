@@ -15,11 +15,14 @@ class Client():
             addr = _in[0]
             port = int(_in[1])
         self.socket.connect((addr,port))
-    def sendpos(self):
+    def sendpos(self, debug=False):
         while True:
-            self.socket.send(f'{self.player.x}:{self.player.y}'.encode("utf-8"))
+            if not debug:
+                self.socket.send(f'{self.player.x}:{self.player.y}'.encode("utf-8"))
+            else:
+                self.socket.send(f'1:1'.encode("utf-8"))
             sleep(1)
 
 if __name__ == "__main__":
     c = Client()
-    c.sendpos()
+    c.sendpos(debug=True)
