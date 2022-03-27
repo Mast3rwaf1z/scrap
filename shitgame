@@ -1,5 +1,6 @@
 #!/bin/python3.10
 from getpass import getpass
+from math import floor
 from random import randint
 from time import sleep, time
 from sys import exit
@@ -74,7 +75,7 @@ def projectile_builder(direction:str) -> tuple[Text, str]:
     return projectile, direction
 
 def projectile_move(projectile:tuple[Object, str]):
-    global map, alive_projectiles
+    global map, alive_projectiles, running
     alive = True
     while alive and running:
         match projectile[1]:
@@ -98,7 +99,7 @@ def projectile_move(projectile:tuple[Object, str]):
             projectile[0].remove()
             alive_projectiles.remove(projectile)
             alive = False
-        sleep(.05)
+        sleep(.01)
         map.show()
 
 def enemy_handle():
@@ -124,11 +125,11 @@ def enemy_handle():
                 if projectile[0].x <= enemy.x+len(enemy.obs)+1 and \
                     projectile[0].x + 2 >= enemy.x and \
                     projectile[0].y <= enemy.y+2 and \
-                    projectile[0].y + 2 <= enemy.y:
+                    projectile[0].y + 2 >= enemy.y:
                     alive = False
-                    score +=1
-                    scoretext.rechar(f'Score: {str(score)}')
-            sleep(1)
+            sleep(.1)
+        score +=1
+        scoretext.rechar(f'Score: {str(score)}')
         enemy.remove()
 
 def keep_alive():
@@ -208,7 +209,7 @@ if __name__ == "__main__":
     script_state = "single player"
     character = "( ͡° ͜ʖ ͡°)"
     enemy_character = ";-;"
-    frequency = 10 #s
+    frequency = 2 #s
     while True:
         system("cls" if name == "nt" else "clear")
         print(start_msg)
@@ -285,7 +286,10 @@ if __name__ == "__main__":
         send_thread.start()
 
     t_now = time()
+    spawn_timer = Text(f'Spawn timer: ')
+    spawn_timer.add(map,1,2)
     while running:
+        spawn_timer.rechar(f'Spawn timer: {floor((t_now+frequency)-time())+1}')
         if t_now + frequency < time() and not debug:
             enemies.append(Thread(target=enemy_handle))
             enemies[len(enemies)-1].start()
