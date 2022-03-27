@@ -6,6 +6,9 @@ from threading import Thread
 from os import system, name
 from sys import exit
 
+from modules.client import Client
+from modules.host import Host
+
 # initialization
 l_combination = {"left", "space"}
 r_combination = {"right", "space"}
@@ -52,6 +55,7 @@ def projectile_move(projectile:tuple[Object, str]):
         if projectile[0].y == 1 or projectile[0].x == 1 or projectile[0].y == screen_height-3 or projectile[0].x == screen_width-2:
             projectile[0].remove()
             alive = False
+        sleep(.1)
         map.show()
 
 def keep_alive():
@@ -104,22 +108,49 @@ def on_release(key:keyboard.Key | keyboard.KeyCode):
 
 if __name__ == "__main__":
     #start menu
+    start_msg = "______________________________SHITGAME!______________________________\n"+\
+    "Controls:\n"+\
+    "w:                   Move up\n"+\
+    "a:                   Move left\n"+\
+    "s:                   Move down\n"+\
+    "d:                   Move right\n"+\
+    "Space + arrow key:   Shoot in a direction\n"+\
+    "Enter:               Exit the game\n\n"+\
+    "Script states:\n"+\
+    "1:                   host TBD\n"+\
+    "2:                   client TBD\n"+\
+    "3:                   single player\n"
+    states = ["host", "client", "single player"]
+    script_state = "single player"
     character = "( ͡° ͜ʖ ͡°)"
-    _in = "( ͡° ͜ʖ ͡°)"
-    while character == _in:
+    while True:
         system("cls" if name == "nt" else "clear")
-        print("______________________________SHITGAME!______________________________")
-        print("Controls:")
-        print("w:                   Move up")
-        print("a:                   Move left")
-        print("s:                   Move down")
-        print("d:                   Move right")
-        print("Space + arrow key:   Shoot in a direction")
-        print("Enter:               Exit the game")
-        _in = input(f'type your character (leave blank to start, current={character}): ') 
+        print(start_msg)
+        _in = input(f'choose the state of this script (leave blank to confirm, current={script_state}): ')
         if _in == "":
             break
-        character = _in
+        try:
+            state = states[int(_in)-1]
+        except:
+            print("input is invalid")
+            sleep(1)
+        script_state = state
+    while True:
+        system("cls" if name == "nt" else "clear")
+        print(start_msg)
+        char = input(f'type your character (leave blank to confirm, current={character}): ') 
+        if char == "":
+            break
+        character = char
+
+    # gamestates:
+    match script_state:
+        case "host":
+            host = Host()
+        case "client":
+            client = Client()
+        case "single player":
+            pass
 
     #init
     player = Box(1,8)
@@ -141,6 +172,13 @@ if __name__ == "__main__":
     listener.start()
 
     Thread(target=keep_alive).start()
+
+    if script_state == "client":
+        client.player = player
+        send_thread = Thread(target=client.sendpos)
+        send_thread.start()
+
+
     while running: 
         if len(projectiles) > 0:
             for projectile in projectiles:
