@@ -1,11 +1,25 @@
+#!/bin/python3.10
 from getpass import getpass
 from random import randint
 from time import sleep, time
-from scrap_engine import Object, Map, screen_height, screen_width, Text, Box
-from pynput import keyboard
-from threading import Thread
-from os import system, name
 from sys import exit
+from os import system, name
+from threading import Thread
+
+try:
+    from scrap_engine import Object, Map, screen_height, screen_width, Text, Box
+except:
+    _in = input("failed to import engine, do you want to install it? (Y/n)")
+    if _in == "Y" or "":
+        system("pip3 install --user scrap_engine")
+    else:
+        exit()
+try:
+    from pynput import keyboard
+except:
+    _in = input("failed to import keyboard library, want to install it? (Y/n)")
+    if _in == "Y" or "":
+        system("pip3 install --user pynput")
 
 from modules.client import Client
 from modules.host import Host
@@ -21,8 +35,12 @@ dr_combination = {"down", "right", "space"}
 r_combination = {"right", "space"}
 current_keys = set()
 projectiles:list[tuple[Text, str]] = list()
+alive_projectiles:list[tuple[Text, str]] = list()
 map:Map
 player:Box
+enemies:list[Thread] = []
+score:int = 0
+debug = False
 running = True
 
 # specific function definitions
@@ -56,9 +74,9 @@ def projectile_builder(direction:str) -> tuple[Text, str]:
     return projectile, direction
 
 def projectile_move(projectile:tuple[Object, str]):
-    global map
+    global map, alive_projectiles
     alive = True
-    while alive:
+    while alive and running:
         match projectile[1]:
             case "up":
                 projectile[0].set(projectile[0].x, projectile[0].y-1)
@@ -78,9 +96,40 @@ def projectile_move(projectile:tuple[Object, str]):
                 projectile[0].set(projectile[0].x+1, projectile[0].y+1)
         if projectile[0].y == 1 or projectile[0].x == 1 or projectile[0].y == screen_height-3 or projectile[0].x == screen_width-2:
             projectile[0].remove()
+            alive_projectiles.remove(projectile)
             alive = False
         sleep(.05)
         map.show()
+
+def enemy_handle():
+    global score
+    if running:
+        enemy = Box(1,3)
+        character = ";-;"
+        [enemy.add_ob(Object(character[i]), i,0) for i in range(len(character))]
+        enemy.add(map, randint(1, screen_width-(len(player.obs)-1)), randint(1,screen_height-3))
+        alive = True
+        while alive:
+            direction = randint(0,3)
+            match direction:
+                case 0: #up
+                    enemy.set(enemy.x, enemy.y-1)
+                case 1: #left
+                    enemy.set(enemy.x-1, enemy.y)
+                case 2: #down
+                    enemy.set(enemy.x, enemy.y+1)
+                case 3: #right
+                    enemy.set(enemy.x+1, enemy.y)
+            for projectile in alive_projectiles:
+                if projectile[0].x <= enemy.x+len(enemy.obs)+1 and \
+                    projectile[0].x + 2 >= enemy.x and \
+                    projectile[0].y <= enemy.y+2 and \
+                    projectile[0].y + 2 <= enemy.y:
+                    alive = False
+                    score +=1
+                    scoretext.rechar(f'Score: {str(score)}')
+            sleep(1)
+        enemy.remove()
 
 def keep_alive():
     global running
@@ -90,7 +139,7 @@ def keep_alive():
 
 # listener functions
 def on_press(key:keyboard.KeyCode | keyboard.Key):
-    global projectiles, current_keys, coords
+    global projectiles, current_keys
     try:
         k = key.char
     except:
@@ -98,22 +147,22 @@ def on_press(key:keyboard.KeyCode | keyboard.Key):
     if not k in current_keys and (k in u_combination or l_combination or d_combination or r_combination):
         current_keys.add(k)
     match k:
-        case "a":
-            if not player.x <= 1:
-                tmp = player.x - 1
-                player.set(tmp, player.y)
-        case "d":
-            if not player.x >= screen_width-(len(player.obs)+1):
-                tmp = player.x + 1
-                player.set(tmp, player.y)
         case "w":
             if not player.y <= 1:
                 tmp = player.y - 1
                 player.set(player.x, tmp)
+        case "a":
+            if not player.x <= 1:
+                tmp = player.x - 1
+                player.set(tmp, player.y)
         case "s":
             if not player.y >= screen_height-3:
                 tmp = player.y + 1
                 player.set(player.x, tmp)
+        case "d":
+            if not player.x >= screen_width-(len(player.obs)+1):
+                tmp = player.x + 1
+                player.set(tmp, player.y)
     if current_keys == u_combination and player.y > 1:
         projectiles.append(projectile_builder("up"))
     elif current_keys == ur_combination and player.y > 1 and player.x < screen_width - (len(player.obs) + 1):
@@ -158,6 +207,8 @@ if __name__ == "__main__":
     states = ["host", "client", "single player"]
     script_state = "single player"
     character = "( ͡° ͜ʖ ͡°)"
+    enemy_character = ";-;"
+    frequency = 10 #s
     while True:
         system("cls" if name == "nt" else "clear")
         print(start_msg)
@@ -170,6 +221,7 @@ if __name__ == "__main__":
             print("input is invalid")
             sleep(1)
         script_state = state
+
     while True:
         system("cls" if name == "nt" else "clear")
         print(start_msg)
@@ -177,6 +229,24 @@ if __name__ == "__main__":
         if char == "":
             break
         character = char
+    while True:
+        system("cls" if name == "nt" else "clear")
+        print(start_msg)
+        char = input(f'type your enemy characters (leave blank to confirm, current={enemy_character}): ')
+        if char == "":
+            break
+        enemy_character = char
+    while True:
+        system("cls" if name == "nt" else "clear")
+        print(start_msg)
+        freq = input(f'type your preferred spawn frequency (leave blank to confirm, current={frequency}): ')
+        if freq == "":
+            break
+        try:
+            frequency = int(freq)
+        except:
+            print("input is invalid")
+            sleep(1)
 
     # gamestates:
     match script_state:
@@ -201,6 +271,8 @@ if __name__ == "__main__":
     [box.add_ob(Object(char="#"), i, 0) for i in range(screen_width)]
     [box.add_ob(Object(char="#"), 0, i) for i in range(1, screen_height-1)]
     box.add(map, 0, 0)
+    scoretext = Text(f'Score: {score}')
+    scoretext.add(map, 1,1)
 
     listener = keyboard.Listener(on_press=on_press, on_release=on_release)
     listener.start()
@@ -212,11 +284,16 @@ if __name__ == "__main__":
         send_thread = Thread(target=client.sendpos)
         send_thread.start()
 
-
-    while running: 
+    t_now = time()
+    while running:
+        if t_now + frequency < time() and not debug:
+            enemies.append(Thread(target=enemy_handle))
+            enemies[len(enemies)-1].start()
+            t_now = time()
         if len(projectiles) > 0:
             for projectile in projectiles:
                 projectiles.remove(projectile) 
                 Thread(target=projectile_move,args=(projectile,)).start()
+                alive_projectiles.append(projectile)
         map.show()
         sleep(.1)
