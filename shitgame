@@ -218,7 +218,10 @@ def on_release(key:keyboard.Key | keyboard.KeyCode):
 
 if __name__ == "__main__":
     #start menu
-    start_msg = "______________________________SHITGAME!______________________________\n"+\
+    start_msg = "___________________________________SHITGAME!___________________________________\n"+\
+    "Goal of the game\n"+\
+    "The goal of this game is to destroy as many enemies as possible before the game\n"+\
+    "crashes!\n\n"+\
     "Controls:\n"+\
     "w:                   Move up\n"+\
     "a:                   Move left\n"+\
@@ -226,52 +229,52 @@ if __name__ == "__main__":
     "d:                   Move right\n"+\
     "Space + arrow key:   Shoot in a direction\n"+\
     "Enter:               Exit the game\n\n"+\
-    "Script states:\n"+\
-    "1:                   host TBD\n"+\
-    "2:                   client TBD\n"+\
-    "3:                   single player\n"
+    "Game states:\n"+\
+    "1:                   Host TBD\n"+\
+    "2:                   Client TBD\n"+\
+    "3:                   Single player\n"
     states = ["host", "client", "single player"]
     script_state = "single player"
     character = "( ͡° ͜ʖ ͡°)"
     enemy_character = ";-;"
-    frequency = 2 #s
+    frequency = 10 #s
     while True:
         system("cls" if name == "nt" else "clear")
         print(start_msg)
-        _in = input(f'choose the state of this script (leave blank to confirm, current={script_state}): ')
+        _in = input(f'Choose the state of this script (Leave blank to confirm, current={script_state}): ')
         if _in == "":
             break
         try:
             state = states[int(_in)-1]
         except:
-            print("input is invalid")
+            print("Input is invalid!")
             sleep(1)
         script_state = state
 
     while True:
         system("cls" if name == "nt" else "clear")
         print(start_msg)
-        char = input(f'type your character (leave blank to confirm, current={character}): ') 
+        char = input(f'Type your character (Leave blank to confirm, current={character}): ') 
         if char == "":
             break
         character = char
     while True:
         system("cls" if name == "nt" else "clear")
         print(start_msg)
-        char = input(f'type your enemy characters (leave blank to confirm, current={enemy_character}): ')
+        char = input(f'Type your enemy characters (Leave blank to confirm, current={enemy_character}): ')
         if char == "":
             break
         enemy_character = char
     while True:
         system("cls" if name == "nt" else "clear")
         print(start_msg)
-        freq = input(f'type your preferred spawn frequency (leave blank to confirm, current={frequency}): ')
+        freq = input(f'Type your preferred spawn frequency (Leave blank to confirm, current={frequency}): ')
         if freq == "":
             break
         try:
             frequency = int(freq)
         except:
-            print("input is invalid")
+            print("Input is invalid!")
             sleep(1)
 
     # gamestates:
