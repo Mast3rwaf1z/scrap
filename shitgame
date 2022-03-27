@@ -117,13 +117,17 @@ def enemy_handle(character:str = ";-;"):
             direction = randint(0,3)
             match direction:
                 case 0: #up
-                    enemy.set(enemy.x, enemy.y-1)
+                    if not enemy.y <= 1:
+                        enemy.set(enemy.x, enemy.y-1)
                 case 1: #left
-                    enemy.set(enemy.x-1, enemy.y)
+                    if not enemy.x <= 1:
+                        enemy.set(enemy.x-1, enemy.y)
                 case 2: #down
-                    enemy.set(enemy.x, enemy.y+1)
+                    if not enemy.y >= screen_height-3:
+                        enemy.set(enemy.x, enemy.y+1)
                 case 3: #right
-                    enemy.set(enemy.x+1, enemy.y)
+                    if not enemy.x >= screen_width-(len(enemy.obs)+1):
+                        enemy.set(enemy.x+1, enemy.y)
             for projectile in alive_projectiles:
                 if is_collided(projectile[0], enemy):
                     alive = False
@@ -134,25 +138,23 @@ def enemy_handle(character:str = ";-;"):
 
 def is_collided(obj1:Object | Box | Text, obj2:Object | Box | Text) -> bool:
     #bounds tuple(up, left, down, right)
-    if obj1 is not Object:
-        obj1_bounds:tuple[int,int,int,int] = (obj1.y-1, obj1.x-1, obj1.y+len(obj1.obs)+1, obj1.x+2)
-    else:
-        obj1_bounds:tuple[int,int,int,int] = (obj1.y-1, obj1.x-1, obj1.y+2, obj1.x+2)
-    if obj2 is not Object:
-        obj2_bounds:tuple[int,int,int,int] = (obj2.y-1, obj2.x-1, obj2.y+len(obj2.obs)+1, obj2.x+2)
-    else:
-        obj2_bounds:tuple[int,int,int,int] = (obj2.y-1, obj2.x-1, obj2.y+2, obj2.x+2)
     try:
-        if  obj1_bounds[0] >= obj2_bounds[2] and \
-            obj1_bounds[1] <= obj2_bounds[3] and \
-            obj1_bounds[2] >= obj2_bounds[0] and \
-            obj1_bounds[3] <= obj2_bounds[1]:
-            return True
-        else: 
-            return False
-    except Exception as e:
-        with open("log.txt") as file:
-            file.write(e)
+        obj1_bounds:tuple[int,int,int,int] = (obj1.y-1, obj1.x-1, obj1.y+len(obj1.obs)+1, obj1.x+2)
+    except:
+        obj1_bounds:tuple[int,int,int,int] = (obj1.y-1, obj1.x-1, obj1.y+2, obj1.x+2)
+    try:
+        obj2_bounds:tuple[int,int,int,int] = (obj2.y-1, obj2.x-1, obj2.y+len(obj2.obs)+1, obj2.x+2)
+    except:
+        obj2_bounds:tuple[int,int,int,int] = (obj2.y-1, obj2.x-1, obj2.y+2, obj2.x+2)
+    with open("log.txt", "w") as file:
+        file.write(str(obj2_bounds))
+    if  obj1_bounds[0] <= obj2_bounds[2] and \
+        obj1_bounds[1] <= obj2_bounds[3] and \
+        obj1_bounds[2] >= obj2_bounds[0] and \
+        obj1_bounds[3] >= obj2_bounds[1]:
+        return True
+    else: 
+        return False
         
 def keep_alive():
     global running
@@ -186,6 +188,7 @@ def on_press(key:keyboard.KeyCode | keyboard.Key):
             if not player.x >= screen_width-(len(player.obs)+1):
                 tmp = player.x + 1
                 player.set(tmp, player.y)
+
     if current_keys == u_combination and player.y > 1:
         projectiles.append(projectile_builder("up"))
     elif current_keys == ur_combination and player.y > 1 and player.x < screen_width - (len(player.obs) + 1):
